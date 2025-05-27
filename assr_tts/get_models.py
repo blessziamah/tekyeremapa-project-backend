@@ -1,3 +1,4 @@
+import json
 import os
 
 import librosa
@@ -9,6 +10,7 @@ import requests
 
 def get_transcription(audio_path):
     audio, sr = librosa.load(audio_path, sr=16000)
+    # audio_stretched = librosa.effects.time_stretch(audio, rate=1.5)
     inputs = processor(audio, sampling_rate=sr, return_tensors="pt", padding=True)
 
     with torch.no_grad():
@@ -19,11 +21,12 @@ def get_transcription(audio_path):
 
 
 # Usage example
-print(get_transcription("../data/1.mp3"))
-
+# print(get_transcription("data/1.mp3"))
 def get_speech(text, language="tw", speaker_id="twi_speaker_8", output_file="output.wav"):
     try:
-        url = os.environ.get("TTS_API_URL")
+        url = os.environ.get("TTS_URL", "https://translation-api.ghananlp.org/tts/v1/synthesize")
+        if not url:
+            return False, "Error occurred: TTS URL is not configured"
 
         headers = {
             'Content-Type': 'application/json',
@@ -49,6 +52,86 @@ def get_speech(text, language="tw", speaker_id="twi_speaker_8", output_file="out
 
     except Exception as e:
         return False, f"Error occurred: {e}"
+
+
+def load_word_data():
+    """Load word data from the JSON file."""
+    # Go up one directory level to reach the project root
+    project_root = os.path.dirname(os.path.dirname(__file__))
+    data_path = os.path.join(project_root, 'data', 'data.json')
+    with open(data_path, 'r', encoding='utf-8') as file:
+        data = json.load(file)
+    return data
+
+
+def get_word_by_id(word_id):
+    """Retrieve a word by its ID.
+
+    Args:
+        word_id (int): The ID of the word to retrieve.
+
+    Returns:
+        dict: The word data if found, None otherwise.
+    """
+    data = load_word_data()
+    for word_data in data.get('words', []):
+        if word_data['id'] == word_id:
+            return word_data
+    return None
+
+
+def get_evaluation(audio_path, id):
+    """Evaluate if the audio matches the word with the given ID.
+
+    Args:
+        audio_path (str): Path to the audio file to evaluate.
+        id (int): ID of the word to compare against.
+
+    Returns:
+        dict: A dictionary containing the evaluation result, the word data, and the transcription.
+    """
+    word_data = get_word_by_id(id)
+    if not word_data:
+        return {"success": False, "error": f"Word with ID {id} not found"}
+
+    try:
+        # Transcribe the audio
+        transcription = get_transcription(audio_path)
+
+        # Clean up the transcription and word for comparison
+        # (remove punctuation, convert to lowercase)
+        clean_transcription = transcription.lower().strip()
+        clean_word = word_data['word'].lower().strip()
+
+        # Check if the transcription contains the word
+        is_match = clean_word in clean_transcription
+
+        # Calculate a similarity score
+        # If exact match, score is 1.0
+        # If word is in transcription but not exact match, score is 0.7
+        # If word is not in transcription, calculate similarity based on character overlap
+        if clean_transcription == clean_word:
+            score = 1.0
+        elif clean_word in clean_transcription:
+            score = 0.7
+        else:
+            # Calculate character-level similarity
+            # Count matching characters
+            common_chars = set(clean_transcription) & set(clean_word)
+            if len(set(clean_word)) > 0:
+                score = len(common_chars) / len(set(clean_word)) * 0.5
+            else:
+                score = 0.0
+
+        return {
+            "success": True,
+            "is_match": is_match,
+            "word_data": word_data,
+            "transcription": transcription,
+            "score": score
+        }
+    except Exception as e:
+        return {"success": False, "error": str(e)}
 
 # Usage example
 # get_speech("Wo ho te sen")

@@ -1,15 +1,13 @@
 from dotenv import load_dotenv
+import os
 from transformers import WhisperForConditionalGeneration, WhisperProcessor, AutoTokenizer, AutoModelForMaskedLM, \
     WhisperTokenizerFast
 
 load_dotenv()
 
-stt_model_path = "../models/akan-non-standard-tiny"
-# stt_model_path_hci = "/Users/blessziamah/Achieve/tekyerema-project-backendf/models/hci_lab"
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.dirname(current_dir)
+stt_model_path = os.path.join(project_root, "models", "akan-non-standard-tiny")
 
-# tokenizer = WhisperTokenizerFast.from_pretrained("openai/whisper-tiny")
-# tokenizer.save_pretrained(stt_model_path_hci)
-processor = WhisperProcessor.from_pretrained(stt_model_path)
-stt_model = WhisperForConditionalGeneration.from_pretrained(stt_model_path)
-
-
+processor = WhisperProcessor.from_pretrained(stt_model_path, local_files_only=True)
+stt_model = WhisperForConditionalGeneration.from_pretrained(stt_model_path, local_files_only=True)
