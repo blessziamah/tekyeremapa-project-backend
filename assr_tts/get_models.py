@@ -6,6 +6,7 @@ import torch
 from assr_tts import processor, stt_model
 from assr_tts import stt_model
 import requests
+from difflib import SequenceMatcher
 
 
 def get_transcription(audio_path):
@@ -80,6 +81,7 @@ def get_word_by_id(word_id):
     return None
 
 
+
 def get_evaluation(audio_path, id):
     """Evaluate if the audio matches the word with the given ID.
 
@@ -90,34 +92,28 @@ def get_evaluation(audio_path, id):
     Returns:
         dict: A dictionary containing the evaluation result, the word data, and the transcription.
     """
-
     word_data = get_word_by_id(int(id))
     if not word_data:
         return {"success": False, "error": f"Word with ID {id} not found"}
 
     try:
-        # Transcribe the audio
+        # transcribe the audio
         transcription = get_transcription(audio_path)
-
-
         clean_transcription = transcription.lower().strip()
         clean_word = word_data['word'].lower().strip()
-        feedback = []
-        for idx, word in enumerate(clean_transcription):
-            if idx < len(clean_word):
-                color = "green" if word == clean_word[idx] else "yellow"
-            else:
-                color = "red"
-            feedback.append({"word": word, "color": color})
+
+        similarity = SequenceMatcher(None, clean_transcription, clean_word).ratio()
+        percentage = round(similarity * 100, 2)
+        success = percentage >= 70  
 
         return {
-            "expected": clean_transcription,
-            "actual": clean_word,
-            "feedback": feedback,
+            "success": True,
+            "similarity_percentage": percentage,
+            "passed": success,
+            "expected": clean_word,
+            "actual": clean_transcription,
+            "word_data": word_data
         }
-    except Exception as e: 
+
+    except Exception as e:
         return {"success": False, "error": str(e)}
-
-
-print(get_word_by_id(7))
-
