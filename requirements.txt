@@ -4,3 +4,7 @@ python-dotenv~=1.1.0
 transformers~=4.51.3
 librosa~=0.11.0
 torch~=2.2.2
+uvicorn
+safetensors
+anthropic
+python-multipart

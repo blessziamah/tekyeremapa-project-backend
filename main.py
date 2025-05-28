@@ -2,7 +2,7 @@ import os
 import json
 from pathlib import Path
 
-from fastapi import FastAPI, UploadFile, File, HTTPException, Query, Body, Path
+from fastapi import FastAPI, UploadFile, File, HTTPException, Query, Body, Path as FastAPIPath
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
 
@@ -114,43 +114,6 @@ def get_word(word_id: int):
         return JSONResponse(content=word_data)
     else:
         raise HTTPException(status_code=404, detail=f"Word with ID {word_id} not found")
-
-
-@app.post("/evaluate/{word_id}")
-async def evaluate_pronunciation(word_id: int = Path(..., description="The ID of the word to evaluate against"), 
-                                audio_file: UploadFile = File(..., description="The audio file containing the pronunciation")):
-    """Evaluate a pronunciation against a specific word.
-
-    This endpoint takes an audio file and a word ID, transcribes the audio,
-    compares the transcription with the word, and returns a similarity score.
-
-    Args:
-        word_id (int): The ID of the word to evaluate against.
-        audio_file (UploadFile): The audio file containing the pronunciation.
-
-    Returns:
-        JSONResponse: The evaluation results including transcription, word data, and score.
-    """
-    # Save the audio file temporarily
-    audio_bytes = await audio_file.read()
-    os.makedirs("temp_audio", exist_ok=True)
-    audio_path = f"temp_audio/{audio_file.filename}"
-
-    try:
-        with open(audio_path, "wb") as f:
-            f.write(audio_bytes)
-
-        # Evaluate the audio against the word
-        evaluation_result = get_evaluation(audio_path, word_id)
-
-        # Return the evaluation results
-        return JSONResponse(content=evaluation_result)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error evaluating pronunciation: {str(e)}")
-    finally:
-        # Clean up the temporary file
-        if os.path.exists(audio_path):
-            os.remove(audio_path)
 
 
 @app.post("/claude/chat")
@@ -299,3 +262,14 @@ async def claude_audio_chat(session_id: str = Query(...), audiofile: UploadFile 
         "history": history,
         "audio_url": f"/claude/audio/{session_id}?message_index={message_index}" if message_index is not None else f"/claude/audio/{session_id}"
     }
+
+
+@app.post("/evaluation")
+async def evaluate(id, audio_file: UploadFile = File(...)):
+    audio_bytes = await audio_file.read()
+    audio_path = f"temp_audio/{audio_file.filename}"
+    os.makedirs("temp_audio", exist_ok=True)
+    with open(audio_path, "wb") as f:
+        f.write(audio_bytes)
+    # print(id)
+    return get_evaluation(audio_path, id)

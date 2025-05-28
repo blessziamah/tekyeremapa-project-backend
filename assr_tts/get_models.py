@@ -90,7 +90,8 @@ def get_evaluation(audio_path, id):
     Returns:
         dict: A dictionary containing the evaluation result, the word data, and the transcription.
     """
-    word_data = get_word_by_id(id)
+
+    word_data = get_word_by_id(int(id))
     if not word_data:
         return {"success": False, "error": f"Word with ID {id} not found"}
 
@@ -133,5 +134,5 @@ def get_evaluation(audio_path, id):
     except Exception as e:
         return {"success": False, "error": str(e)}
 
-# Usage example
-# get_speech("Wo ho te sen")
+
+print(get_word_by_id(7))
