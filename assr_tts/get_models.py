@@ -121,23 +121,3 @@ def get_evaluation(audio_path, id):
 
 print(get_word_by_id(7))
 
-
-#try this
-def get_feedback(expected: str, actual: str) -> dict:
-    expected_words = expected.strip().lower().split()
-    actual_words = actual.strip().lower().split()
-
-    feedback = []
-    for idx, word in enumerate(expected_words):
-        if idx < len(actual_words):
-            color = "green" if word == actual_words[idx] else "yellow"
-        else:
-            color = "red"
-        feedback.append({"word": word, "color": color})
-
-    return {
-        "expected": expected,
-        "actual": actual,
-        "feedback": feedback,
-    }
-
