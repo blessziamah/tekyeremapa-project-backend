@@ -267,9 +267,19 @@ async def claude_audio_chat(session_id: str = Query(...), audiofile: UploadFile 
 @app.post("/evaluation")
 async def evaluate(id, audio_file: UploadFile = File(...)):
     audio_bytes = await audio_file.read()
+
+    print(f"This is the ID: {id}")
+    print(f"This is the audio file: {audio_file}")
     audio_path = f"temp_audio/{audio_file.filename}"
     os.makedirs("temp_audio", exist_ok=True)
     with open(audio_path, "wb") as f:
         f.write(audio_bytes)
     # print(id)
     return get_evaluation(audio_path, id)
+
+
+
+# ct2-transformers-converter \
+#     --model ./akan-non-standard-tiny \
+#     --output_dir ./akan-non-standard-tiny/fast\
+#     --quantization int8
