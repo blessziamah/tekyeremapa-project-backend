@@ -118,13 +118,13 @@ def get_evaluation(audio_path, id):
             feedback = "Try again. It didn't quite match the expected word."
 
         return {
-            "expected": clean_word,
-            "actual": clean_transcription,
-            "feedback": feedback,
-            "success": True,
-            "similarity_percentage": percentage,
+            # "expected": clean_word,
+            # "actual": clean_transcription,
+            # "feedback": feedback,
+            # "success": True,
+            # "similarity_percentage": percentage,
             "passed": passed,
-            "word_data": word_data
+            # "word_data": word_data
         }
 
     except Exception as e:
