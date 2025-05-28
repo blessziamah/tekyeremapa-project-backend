@@ -108,6 +108,7 @@ def get_evaluation(audio_path, id):
 
         word_in_transcription = clean_word in clean_transcription
         passed = percentage >= 70 or word_in_transcription
+        print(f"This is the transcription: {clean_transcription}")
 
         if passed:
             feedback = "Good job! You said the correct word."
@@ -129,3 +130,8 @@ def get_evaluation(audio_path, id):
 
     except Exception as e:
         return {"success": False, "error": str(e)}
+
+# ct2-transformers-converter \
+#     --model . \
+#     --output_dir ./fast \
+#     --quantization int8
