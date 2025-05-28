@@ -3,22 +3,24 @@ import os
 
 import librosa
 import torch
-from assr_tts import processor, stt_model
-from assr_tts import stt_model
+# from assr_tts import processor, stt_model
+# from assr_tts import stt_model
 import requests
 from difflib import SequenceMatcher
 
+from assr_tts import model
 
-def get_transcription(audio_path):
-    audio, sr = librosa.load(audio_path, sr=16000)
-    # audio_stretched = librosa.effects.time_stretch(audio, rate=1.5)
-    inputs = processor(audio, sampling_rate=sr, return_tensors="pt", padding=True)
 
-    with torch.no_grad():
-        output = stt_model.generate(**inputs)
+def get_transcription(audio_data):
+    segments, _ = model.transcribe(
+        audio_data,
+        beam_size=5,
+        language='en',
+        word_timestamps=False,
+        vad_filter=True
+    )
 
-    transcript = processor.batch_decode(output, skip_special_tokens=True)[0]
-    return transcript
+    return " ".join(segment.text for segment in segments)
 
 
 # Usage example
@@ -81,7 +83,6 @@ def get_word_by_id(word_id):
     return None
 
 
-
 def get_evaluation(audio_path, id):
     """Evaluate if the audio matches the word with the given ID.
 
@@ -104,14 +105,25 @@ def get_evaluation(audio_path, id):
 
         similarity = SequenceMatcher(None, clean_transcription, clean_word).ratio()
         percentage = round(similarity * 100, 2)
-        success = percentage >= 70  
+
+        word_in_transcription = clean_word in clean_transcription
+        passed = percentage >= 70 or word_in_transcription
+
+        if passed:
+            feedback = "Good job! You said the correct word."
+        elif clean_word in clean_transcription.replace(" ", ""):
+            feedback = "Close! You said the correct word but with some repetition. Try to say it more clearly next time."
+            passed = True
+        else:
+            feedback = "Try again. It didn't quite match the expected word."
 
         return {
-            "success": True,
-            "similarity_percentage": percentage,
-            "passed": success,
             "expected": clean_word,
             "actual": clean_transcription,
+            "feedback": feedback,
+            "success": True,
+            "similarity_percentage": percentage,
+            "passed": passed,
             "word_data": word_data
         }
 

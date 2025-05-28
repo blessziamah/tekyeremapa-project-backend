@@ -1,16 +1,32 @@
-from dotenv import load_dotenv
+from faster_whisper import WhisperModel
 import os
-from transformers import WhisperForConditionalGeneration, WhisperProcessor, AutoTokenizer, AutoModelForMaskedLM, \
-    WhisperTokenizerFast
+import torch
 
-load_dotenv()
+# Construct the absolute path to your local model
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+MODEL_PATH = os.path.join(BASE_DIR, "models/akan-non-standard-tiny/fast")  # Make sure this folder has 'model.bin', 'config.json', etc.
+print(MODEL_PATH)
 
-current_dir = os.path.dirname(os.path.abspath(__file__))
-project_root = os.path.dirname(current_dir)
-stt_model_path = os.path.join(project_root, "models", "akan-non-standard-large")
+# Choose the device
+device = "cuda" if torch.cuda.is_available() else "cpu"
 
-# tokenizer = WhisperTokenizerFast.from_pretrained("openai/whisper-large-v2")
-# tokenizer.save_pretrained(stt_model_path)
+# ✅ Fix: Set `MODEL_PATH` as local directory and pass `local_files_only=True` properly
+model = WhisperModel(
+    model_size_or_path=MODEL_PATH,  # Now correctly interpreted as a local path
+    device=device,
+    compute_type="int8",  # Use "float16" or "float32" for better accuracy if supported
+    local_files_only=True
+)
 
-processor = WhisperProcessor.from_pretrained(stt_model_path, local_files_only=True)
-stt_model = WhisperForConditionalGeneration.from_pretrained(stt_model_path, local_files_only=True)
+# def transcribe_with_whisper(audio_data):
+#     segments, _ = model.transcribe(
+#         audio_data,
+#         beam_size=5,
+#         language='en',
+#         word_timestamps=False,
+#         vad_filter=True
+#     )
+#
+#     return " ".join(segment.text for segment in segments)
+#
+# print(transcribe_with_whisper("./data/1.mp3"))
