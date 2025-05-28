@@ -99,40 +99,45 @@ def get_evaluation(audio_path, id):
         # Transcribe the audio
         transcription = get_transcription(audio_path)
 
-        # Clean up the transcription and word for comparison
-        # (remove punctuation, convert to lowercase)
+
         clean_transcription = transcription.lower().strip()
         clean_word = word_data['word'].lower().strip()
-
-        # Check if the transcription contains the word
-        is_match = clean_word in clean_transcription
-
-        # Calculate a similarity score
-        # If exact match, score is 1.0
-        # If word is in transcription but not exact match, score is 0.7
-        # If word is not in transcription, calculate similarity based on character overlap
-        if clean_transcription == clean_word:
-            score = 1.0
-        elif clean_word in clean_transcription:
-            score = 0.7
-        else:
-            # Calculate character-level similarity
-            # Count matching characters
-            common_chars = set(clean_transcription) & set(clean_word)
-            if len(set(clean_word)) > 0:
-                score = len(common_chars) / len(set(clean_word)) * 0.5
+        feedback = []
+        for idx, word in enumerate(clean_transcription):
+            if idx < len(clean_word):
+                color = "green" if word == clean_word[idx] else "yellow"
             else:
-                score = 0.0
+                color = "red"
+            feedback.append({"word": word, "color": color})
 
         return {
-            "success": True,
-            "is_match": is_match,
-            "word_data": word_data,
-            "transcription": transcription,
-            "score": score
+            "expected": clean_transcription,
+            "actual": clean_word,
+            "feedback": feedback,
         }
-    except Exception as e:
+    except Exception as e: 
         return {"success": False, "error": str(e)}
 
 
 print(get_word_by_id(7))
+
+
+#try this
+def get_feedback(expected: str, actual: str) -> dict:
+    expected_words = expected.strip().lower().split()
+    actual_words = actual.strip().lower().split()
+
+    feedback = []
+    for idx, word in enumerate(expected_words):
+        if idx < len(actual_words):
+            color = "green" if word == actual_words[idx] else "yellow"
+        else:
+            color = "red"
+        feedback.append({"word": word, "color": color})
+
+    return {
+        "expected": expected,
+        "actual": actual,
+        "feedback": feedback,
+    }
+
