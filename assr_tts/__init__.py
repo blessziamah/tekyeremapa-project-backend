@@ -10,7 +10,6 @@ print(MODEL_PATH)
 # Choose the device
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
-# ✅ Fix: Set `MODEL_PATH` as local directory and pass `local_files_only=True` properly
 model = WhisperModel(
     model_size_or_path=MODEL_PATH,  # Now correctly interpreted as a local path
     device=device,
@@ -30,3 +29,8 @@ model = WhisperModel(
 #     return " ".join(segment.text for segment in segments)
 #
 # print(transcribe_with_whisper("./data/1.mp3"))
+
+# from transformers import WhisperTokenizer
+#
+# tokenizer = WhisperTokenizer.from_pretrained("openai/whisper-large")
+# tokenizer.save_pretrained("./models/hci_lab_small/fast")
