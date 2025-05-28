@@ -102,16 +102,28 @@ def get_evaluation(audio_path, id):
         clean_transcription = transcription.lower().strip()
         clean_word = word_data['word'].lower().strip()
 
+        
         similarity = SequenceMatcher(None, clean_transcription, clean_word).ratio()
         percentage = round(similarity * 100, 2)
-        success = percentage >= 70  
+        
+        word_in_transcription = clean_word in clean_transcription
+        passed = percentage >= 70 or word_in_transcription
+
+        if passed:
+            feedback = "Good job! You said the correct word."
+        elif clean_word in clean_transcription.replace(" ", ""):
+            feedback = "Close! You said the correct word but with some repetition. Try to say it more clearly next time."
+            passed = True 
+        else:
+            feedback = "Try again. It didn't quite match the expected word."
 
         return {
-            "success": True,
-            "similarity_percentage": percentage,
-            "passed": success,
             "expected": clean_word,
             "actual": clean_transcription,
+            "feedback": feedback,
+            "success": True,
+            "similarity_percentage": percentage,
+            "passed": passed,
             "word_data": word_data
         }
 
