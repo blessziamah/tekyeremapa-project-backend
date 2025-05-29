@@ -3,22 +3,24 @@ import os
 
 import librosa
 import torch
-from assr_tts import processor, stt_model
-from assr_tts import stt_model
+# from assr_tts import processor, stt_model
+# from assr_tts import stt_model
 import requests
 from difflib import SequenceMatcher
 
+from assr_tts import model
 
-def get_transcription(audio_path):
-    audio, sr = librosa.load(audio_path, sr=16000)
-    # audio_stretched = librosa.effects.time_stretch(audio, rate=1.5)
-    inputs = processor(audio, sampling_rate=sr, return_tensors="pt", padding=True)
 
-    with torch.no_grad():
-        output = stt_model.generate(**inputs)
+def get_transcription(audio_data):
+    segments, _ = model.transcribe(
+        audio_data,
+        beam_size=5,
+        language='en',
+        word_timestamps=False,
+        vad_filter=True
+    )
 
-    transcript = processor.batch_decode(output, skip_special_tokens=True)[0]
-    return transcript
+    return " ".join(segment.text for segment in segments)
 
 
 # Usage example
@@ -79,7 +81,6 @@ def get_word_by_id(word_id):
         if word_data['id'] == word_id:
             return word_data
     return None
-
 
 
 def get_evaluation(audio_path, id):
