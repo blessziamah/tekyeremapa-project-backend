@@ -4,7 +4,7 @@ import torch
 
 # Construct the absolute path to your local model
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-MODEL_PATH = os.path.join(BASE_DIR, "models/akan-non-standard-tiny/fast")  # Make sure this folder has 'model.bin', 'config.json', etc.
+MODEL_PATH = os.path.join(BASE_DIR, "models/sumaya")  # Make sure this folder has 'model.bin', 'config.json', etc.
 print(MODEL_PATH)
 
 # Choose the device
